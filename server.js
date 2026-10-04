@@ -24,15 +24,15 @@ const PlayerSchema = new mongoose.Schema({
 
 const Player = mongoose.model('Player', PlayerSchema);
 
-// Serve the static files from the public folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files relative to the root project folder
+app.use(express.static(path.resolve(__dirname, 'public')));
 
-// Force the server to deliver leaderboard.html when loading the main page
+// Explicitly send leaderboard.html when visiting the base URL path
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'leaderboard.html'));
+  res.sendFile(path.resolve(__dirname, 'public', 'leaderboard.html'));
 });
 
-// API Endpoint to deliver the top 100 data rows to the interface
+// API Endpoint to send top 100 data records
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const leaderboard = await Player.find().sort({ elo: -1 }).limit(100); 
@@ -42,6 +42,5 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// CRUCIAL: Export the app module so Vercel can run it as a serverless engine
+module.exports = app;
