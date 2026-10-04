@@ -8,11 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // 1. Core Connection: Establishes secure cloud sync with MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('Successfully connected to MongoDB!');
-    // Fire the data connection tester once connected
-    injectTestPlayer();
-  })
+  .then(() => console.log('Successfully connected to MongoDB!'))
   .catch(err => console.error('Database connection error:', err));
 
 // 2. Blueprint Mapping: Matches your partner's data variables exactly
@@ -46,32 +42,6 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-// 5. Automated Data Flow Tester Component
-async function injectTestPlayer() {
-  try {
-    const total = await Player.countDocuments();
-    // If the database has 0 players, insert a test placeholder profile instantly
-    if (total === 0) {
-      console.log("Database is completely empty. Injecting a cloud test player profile...");
-      await Player.create({
-        _id: "test_account_99",
-        user_id: 1234567,
-        username: "BetaTester",
-        elo: 1250,
-        rank: "Gold",
-        subrank: "III",
-        wins: 15,
-        losses: 5
-      });
-      console.log("Cloud check passed: Test profile successfully registered!");
-    } else {
-      console.log(`Database sync active. Found ${total} live accounts stored inside cluster.`);
-    }
-  } catch (err) {
-    console.error("Cloud check blocked:", err);
-  }
-}
-
 // Start local execution engine
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
@@ -79,5 +49,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// 6. Cloud Export Engine: Mandatory module handle for Vercel deployment infrastructure
+// 5. Cloud Export Engine: Mandatory module handle for Vercel deployment infrastructure
 module.exports = app;
