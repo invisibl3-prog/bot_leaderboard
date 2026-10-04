@@ -11,5 +11,8 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "MONGO_URI": "mongodb+srv://leaderboard_db:HelloMate1231@rankcluster.kocytjc.mongodb.net/rankbot?appName=rankcluster"
+  }
 }
