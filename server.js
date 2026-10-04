@@ -6,12 +6,15 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Core Connection: Establishes secure cloud sync with MongoDB
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Successfully connected to MongoDB!'))
+  .then(() => {
+    console.log('Successfully connected to MongoDB!');
+    // Automatically runs our dashboard cleanup script
+    clearTestData();
+  })
   .catch(err => console.error('Database connection error:', err));
 
-// 2. Blueprint Mapping: Matches your partner's data variables exactly
 const PlayerSchema = new mongoose.Schema({
     _id: String,
     user_id: Number,
@@ -25,14 +28,13 @@ const PlayerSchema = new mongoose.Schema({
 
 const Player = mongoose.model('Player', PlayerSchema);
 
-// 3. UI Router: Serve frontend assets from the public folder path securely
 app.use(express.static(path.resolve(__dirname, 'public')));
 
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'public', 'leaderboard.html'));
 });
 
-// 4. Data API Endpoint: Delivers top 100 player stats ordered by ELO score
+// Data API Endpoint
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const leaderboard = await Player.find().sort({ elo: -1 }).limit(100); 
@@ -42,12 +44,22 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-// Start local execution engine
+// CLEANUP TOOL: Erases the dummy player profile directly from the cloud
+async function clearTestData() {
+  try {
+    const deleted = await Player.deleteOne({ username: "BetaTester" });
+    if (deleted.deletedCount > 0) {
+      console.log("Cleanup active: 'BetaTester' placeholder profile successfully deleted from MongoDB!");
+    }
+  } catch (err) {
+    console.error("Cleanup script hit an error:", err);
+  }
+}
+
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log('Server running dynamically');
   });
 }
 
-// 5. Cloud Export Engine: Mandatory module handle for Vercel deployment infrastructure
 module.exports = app;
